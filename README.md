@@ -22,7 +22,7 @@ docker-compose up -d
 
 É necessário instalar as dependências da aplicação:
 ```console
-docker exec -it nginx-rtsmp  bash -c "cd /app && npm install && npm audit fix"
+docker exec -it nginx-rtmp  bash -c "cd /app && npm install && npm audit fix"
 ```
 Para iniciar a aplicação execute o comando abaixo dentro do container:
 ```javascript

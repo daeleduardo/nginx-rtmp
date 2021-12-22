@@ -1,8 +1,8 @@
 version: '3'
 services:
-  nginx-rtsmp:
-    container_name: nginx-rtsmp
-    image: nginx-rtsmp   
+  nginx-rtmp:
+    container_name: nginx-rtmp
+    image: nginx-rtmp   
     build:
       context: .
       dockerfile: Dockerfile
