@@ -47,4 +47,6 @@ ffmpeg -re -i exemplo.m4v -vcodec libx264 -vprofile baseline -g 30 -acodec aac -
 
 Para reproduzir o streaming do video use o seguinte comando abaixo (fora do container):
 
+```console
 ffplay rtmp://localhost/{chave_gerada_pelo_aplicativo_teste}
+```
