@@ -1,0 +1,22 @@
+version: '3'
+services:
+  nginx-rtsmp:
+    container_name: nginx-rtsmp
+    image: nginx-rtsmp   
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app
+#      - ./hosts/nginx.conf:/etc/nginx/nginx.conf
+#      - ./hosts/confd:/etc/nginx/conf.d
+    ports:
+      - 80:80
+      - 443:443
+      - 1935:1935
+    networks:
+        - services-network
+
+networks:
+    services-network:
+        driver: bridge

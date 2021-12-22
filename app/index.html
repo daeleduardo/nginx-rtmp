@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Nginx RTMP Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+</head>
+
+<body>
+    <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+    <div class="w3-container">
+        <table class="w3-table w3-striped w3-bordered w3-hoverable w3-centered" aria-describedby="">
+            <caption><h3>Tokens</h3></caption>
+            <button onclick="add()" class="w3-button w3-circle w3-teal">+</button>
+            <thead class="w3-blue">
+                <tr>
+                    <th scope="col">Values</th>
+                    <th scope="col">Remove</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        var host = window.location.protocol + "//" + window.location.href.split("/")[2] ;
+        const getAll = () => {
+            document.querySelector("tbody").innerHTML = "";
+            fetch(`${host}/all`).then(response=>response.json()).then((response) => {
+                response.data.forEach(element => {
+                    const row = `
+                        <tr>
+                            <td>${element.token}</td>
+                            <td><button onclick="remove('${element.token}')" class="w3-button w3-circle w3-red">x</button></td>
+                        </tr>
+                    `;
+                    document.querySelector("tbody").innerHTML += row;
+                });
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(() => {
+                getAll();
+            }, 500);
+
+        }, false);
+
+        const add = () => {
+            fetch(`${host}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then(() => {
+                getAll();
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
+
+        const remove = (token) => {
+            fetch(`${host}/${token}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then(() => {
+                getAll();
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
+
+    </script>
+</body>
+
+</html>
