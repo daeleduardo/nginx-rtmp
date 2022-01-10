@@ -42,8 +42,15 @@ const nginxReload = () => {
 
 }
 
+//Cria a pasta para guardar as gravações do token informado.
+const createNginxFolder = (token) => {
+    return sheelCommand(`mkdir -p /records/${token} && chown -R nobody:nogroup /records/${token} && chmod -fR 700 /records/${token}`);
+}
+
+
+
 //Reescreve o arquivo de configuração do NGINX com base nos tokens gerados.
-const refreshNginxConfigFile = (key) =>{
+const refreshNginxConfigFile = (key = "") => {
 
     try {
 
@@ -52,16 +59,32 @@ const refreshNginxConfigFile = (key) =>{
         const params = [];
         let applications = "";
         let index = 0;
+
         db.all(sql, params, (err, rows) => {
+
+            if (!Object.prototype.hasOwnProperty.call(rows, 'length') || rows.length == 0) {
+                return;
+            }
+
+            //Cria-se uma pasta para armazenar as gravações do token recém criado.
+            if (key != "") {
+                createNginxFolder(key);
+            }
+
             rows.forEach((row) => {
                 applications += `
                                 application ${row.token} {
-                                    live on;
-                                    record off;
+                                    record_path /records/${row.token};
+                                    record_suffix ${row.token}_%F-%T.flv;
                                 }
                 `;
                 index++;
-                if(index == rows.length){
+                //Se nehum token foi informado, entende-se que é a primeira vez que o arquivo é gerado.
+                //Então todas as pasta de gravação serão criadas (se já existirem não serão criadas novamente).
+                if (key == "") {
+                    createNginxFolder(row.token);
+                }
+                if (index == rows.length) {
 
                     const contentFile = `
                     worker_processes auto;
@@ -71,6 +94,10 @@ const refreshNginxConfigFile = (key) =>{
                         server {
                             listen 1935;
                             listen [::]:1935 ipv6only=on;
+
+                            live on;
+                            record_interval 1m;
+                            record all;
             
                             ${applications}
                         }
@@ -85,7 +112,7 @@ const refreshNginxConfigFile = (key) =>{
                 }
             });
 
-            if (err) throw err;            
+            if (err) throw err;
         });
 
     } catch (error) {
@@ -95,11 +122,11 @@ const refreshNginxConfigFile = (key) =>{
 
 //Gera um token aleatório, os números são removidos, pois aparentemente o NGINX não aceita aplicações com números.
 const randomHash = () => {
-    return String(  
-                (Math.random() + 1).toString(36).substring(7) + 
-                (Math.random() + 1).toString(36).substring(7) + 
-                (Math.random() + 1).toString(36).substring(7)
-                ).replace(/\d/g,"");
+    return String(
+        (Math.random() + 1).toString(36).substring(7) +
+        (Math.random() + 1).toString(36).substring(7) +
+        (Math.random() + 1).toString(36).substring(7)
+    ).replace(/\d/g, "");
 }
 
 
@@ -108,11 +135,12 @@ app.get('/', (req, res) => {
     try {
         const db = getConn();
         db.run('CREATE TABLE IF NOT EXISTS keys(token text)');
+        refreshNginxConfigFile();
         db.close();
     } catch (error) {
         console.error(error);
     } finally {
-        res.sendFile(__dirname+'/index.html');
+        res.sendFile(__dirname + '/index.html');
     }
 })
 
@@ -123,17 +151,18 @@ app.post('/', (req, res) => {
         const token = randomHash();
         db.run(`INSERT INTO keys VALUES('${token}')`);
         db.close();
-        refreshNginxConfigFile(token);
-        nginxReload();
-        res.json({
-            "message":"success",
-            "data":true
-        })
+        setTimeout(() => {
+            refreshNginxConfigFile(token);
+            res.json({
+                "message": "success",
+                "data": true
+            });
+        }, 500);
     } catch (error) {
         console.error(error);
         res.json({
-            "message":"error",
-            "data":false
+            "message": "error",
+            "data": false
         })
     }
 })
@@ -146,19 +175,19 @@ app.get("/all", (req, res, next) => {
         const params = [];
         db.all(sql, params, (err, rows) => {
             if (err) {
-                res.status(400).json({"error":err.message});
+                res.status(400).json({ "error": err.message });
                 return;
             }
             res.json({
-                "message":"success",
-                "data":rows
+                "message": "success",
+                "data": rows
             })
         });
     } catch (error) {
         console.error(error);
         res.json({
-            "message":"error",
-            "data":false
+            "message": "error",
+            "data": false
         })
     }
 });
@@ -173,14 +202,14 @@ app.delete('/:id', (req, res) => {
             refreshNginxConfigFile(req.params.id);
         });
         res.json({
-            "message":"success",
-            "data":true
+            "message": "success",
+            "data": true
         })
     } catch (error) {
         console.error(error);
         res.json({
-            "message":"error",
-            "data":false
+            "message": "error",
+            "data": false
         })
     }
 });

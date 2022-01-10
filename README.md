@@ -26,7 +26,7 @@ docker exec -it nginx-rtmp  bash -c "cd /app && npm install && npm audit fix"
 ```
 Para iniciar a aplicação execute o comando abaixo dentro do container:
 ```javascript
-node /app/index.js
+docker exec -it nginx-rtmp  bash -c "cd /app && node /index.js"
 ```
 Por padrão o endereço para acessar a aplicação é http://localhost:80, mas pode ser alterada a porta, editando o arquivo ```index.js``` na pasta ```/app```
 
@@ -50,10 +50,14 @@ Para reproduzir o streaming do video use o seguinte comando abaixo (fora do cont
 ```console
 ffplay rtmp://localhost/{chave_gerada_pelo_aplicativo_teste}
 ```
+**As Gravações ficam na pasta `/records` do servidor**
 
 ### Fontes:
 
 https://www.servermania.com/kb/articles/nginx-rtmp/
+
 https://github.com/tiangolo/nginx-rtmp-docker
+
 https://github.com/arut/nginx-rtmp-module
+
 https://github.com/arut/nginx-rtmp-module/wiki/Directives

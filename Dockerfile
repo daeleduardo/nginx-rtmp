@@ -1,6 +1,9 @@
 #Imagem que já possui o NGINX compilado com o módulo de rtmp
 FROM tiangolo/nginx-rtmp
 
+ENV TZ=America/Sao_Paulo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 #Adiciona o repositório da versão do Node.js
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash
 
@@ -14,6 +17,11 @@ RUN rm -rf /var/log/nginx && \
     touch /var/log/nginx/error.log && \
     chown -R www-data:www-data /var/log/nginx && \
     chmod -fR 777 /var/log/nginx
+
+#Cria a pasta onde irá ocorrer as gravações das câmeras
+RUN mkdir /records  && \
+    chown -R nobody:nogroup /records && \
+    chmod -fR 700 /records
 
 #Cria um arquivo de configuração para o NGINX com o RTMP, mas sem nenhuma aplicação
 COPY ./hosts/nginx.conf /etc/nginx/nginx.conf
